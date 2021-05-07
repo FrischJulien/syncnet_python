@@ -3,6 +3,7 @@ import os
 from glob import glob
 from os import listdir, path
 import argparse
+import pytorch
 
 unprocessed_root = '//mnt/efs/fs1/data_unprocessed/voxceleb2/dev/'
 preprocessed_root = '//mnt/efs/fs1/data_preprocessed_aligned/main/'
@@ -17,6 +18,8 @@ from tqdm import trange, tqdm
 
 print("for "+ str(opt.begining)+" to "+str(opt.end))
 for i in trange(opt.begining,opt.end):
+    torch.cuda.empty_cache()
+    print("cache cleared")
     unprocessed_folder=unprocessed_folders[i]
     print(unprocessed_folder)
     basename=os.path.basename(os.path.normpath(unprocessed_folder))
