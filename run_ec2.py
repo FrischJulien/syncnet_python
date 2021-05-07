@@ -28,4 +28,4 @@ for i in trange(opt.begining,opt.end):
     print("folder created")
     os.system("sudo chmod ugo+rwx "+preprocessed_folder)
     print("rights given")
-    os.system("python3 run_syncro.py --initial_model data/syncnet_v2.model  --input_dir "+unprocessed_folder+" --output_dir "+preprocessed_folder+" --ngpu "+opt.ngpu+" --batch_size "+opt.batch_size)
+    os.system("python3 run_syncro.py --initial_model data/syncnet_v2.model  --input_dir "+unprocessed_folder+" --output_dir "+preprocessed_folder+" --ngpu "+str(opt.ngpu)+" --batch_size "+str(opt.batch_size))
