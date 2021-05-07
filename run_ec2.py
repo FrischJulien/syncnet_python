@@ -3,7 +3,7 @@ import os
 from glob import glob
 from os import listdir, path
 import argparse
-import pytorch
+import torch
 
 unprocessed_root = '//mnt/efs/fs1/data_unprocessed/voxceleb2/dev/'
 preprocessed_root = '//mnt/efs/fs1/data_preprocessed_aligned/main/'
