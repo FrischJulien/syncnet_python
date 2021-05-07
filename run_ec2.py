@@ -22,6 +22,6 @@ for i in trange(opt.begining,opt.end):
     preprocessed_folder=path.join(preprocessed_root,basename)
     os.system("sudo mkdir "+preprocessed_folder)
     print("folder created")
-    os.system("sudo ugo+rwx "+preprocessed_folder)
+    os.system("sudo chmod ugo+rwx "+preprocessed_folder)
     print("rights given")
     os.system("python run_syncro.py --initial_model data/syncnet_v2.model  --input_dir "+unprocessed_folder+" --output_dir "+preprocessed_folder+" --ngpu 8 --batch_size 20")
