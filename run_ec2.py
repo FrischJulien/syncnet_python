@@ -9,12 +9,13 @@ preprocessed_root = '//mnt/efs/fs1/data_preprocessed_aligned/main/'
 unprocessed_folders = glob(path.join(unprocessed_root, '*'))
 
 parser = argparse.ArgumentParser(description = "run EC2");
-parser.add_argument('--begining',       type=int, required=True);
-parser.add_argument('--end',      type=int, required=True);
+parser.add_argument('--begining', type=int, required=True);
+parser.add_argument('--end', type=int, required=True);
 opt = parser.parse_args();
 
 from tqdm import trange, tqdm
 
+print("for "+ opt.begining+" to "+opt.end)
 for i in trange(opt.begining,opt.end):
     unprocessed_folder=unprocessed_folders[i]
     print(unprocessed_folder)
