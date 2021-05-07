@@ -15,7 +15,7 @@ opt = parser.parse_args();
 
 from tqdm import trange, tqdm
 
-print("for "+ opt.begining+" to "+opt.end)
+print("for "+ str(opt.begining)+" to "+str(opt.end))
 for i in trange(opt.begining,opt.end):
     unprocessed_folder=unprocessed_folders[i]
     print(unprocessed_folder)
