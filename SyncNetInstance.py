@@ -40,31 +40,31 @@ class SyncNetInstance(torch.nn.Module):
         self.__S__ = S(num_layers_in_fc_layers = num_layers_in_fc_layers).cuda();
 
     def evaluate(self, opt, videofile):
-
+        tS = time.time()
         self.__S__.eval();
 
         # ========== ==========
         # Convert files
         # ========== ==========
 
-        if os.path.exists(os.path.join(opt.tmp_dir,opt.reference)):
-          rmtree(os.path.join(opt.tmp_dir,opt.reference))
+        if os.path.exists(os.path.join(opt.output_dir,opt.reference)):
+          rmtree(os.path.join(opt.output_dir,opt.reference))
 
-        os.makedirs(os.path.join(opt.tmp_dir,opt.reference))
-
-        command = ("ffmpeg -y -i %s -threads 1 -f image2 %s" % (videofile,os.path.join(opt.tmp_dir,opt.reference,'%06d.jpg'))) 
-        output = subprocess.call(command, shell=True, stdout=None)
-
-        command = ("ffmpeg -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (videofile,os.path.join(opt.tmp_dir,opt.reference,'audio.wav'))) 
-        output = subprocess.call(command, shell=True, stdout=None)
+        os.makedirs(os.path.join(opt.output_dir,opt.reference))
         
+
+        command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (videofile,os.path.join(opt.output_dir,opt.reference,'%06d.jpg'))) 
+        #command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (videofile,os.path.join(opt.output_dir,opt.reference,'%d.jpg'))) 
+        output = subprocess.call(command, shell=True, stdout=None)
+        command = ("ffmpeg -hide_banner -loglevel error -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (videofile,os.path.join(opt.output_dir,opt.reference,'audio.wav'))) 
+        output = subprocess.call(command, shell=True, stdout=None)
         # ========== ==========
         # Load video 
         # ========== ==========
 
         images = []
         
-        flist = glob.glob(os.path.join(opt.tmp_dir,opt.reference,'*.jpg'))
+        flist = glob.glob(os.path.join(opt.output_dir,opt.reference,'*.jpg'))
         flist.sort()
 
         for fname in flist:
@@ -80,7 +80,7 @@ class SyncNetInstance(torch.nn.Module):
         # Load audio
         # ========== ==========
 
-        sample_rate, audio = wavfile.read(os.path.join(opt.tmp_dir,opt.reference,'audio.wav'))
+        sample_rate, audio = wavfile.read(os.path.join(opt.output_dir,opt.reference,'audio.wav'))
         mfcc = zip(*python_speech_features.mfcc(audio,sample_rate))
         mfcc = numpy.stack([numpy.array(i) for i in mfcc])
 
@@ -91,8 +91,8 @@ class SyncNetInstance(torch.nn.Module):
         # Check audio and video input length
         # ========== ==========
 
-        if (float(len(audio))/16000) != (float(len(images))/25) :
-            print("WARNING: Audio (%.4fs) and video (%.4fs) lengths are different."%(float(len(audio))/16000,float(len(images))/25))
+        #if (float(len(audio))/16000) != (float(len(images))/25) :
+            #print("WARNING: Audio (%.4fs) and video (%.4fs) lengths are different."%(float(len(audio))/16000,float(len(images))/25))
 
         min_length = min(len(images),math.floor(len(audio)/640))
         
@@ -104,7 +104,6 @@ class SyncNetInstance(torch.nn.Module):
         im_feat = []
         cc_feat = []
 
-        tS = time.time()
         for i in range(0,lastframe,opt.batch_size):
             
             im_batch = [ imtv[:,:,vframe:vframe+5,:,:] for vframe in range(i,min(lastframe,i+opt.batch_size)) ]
@@ -123,29 +122,64 @@ class SyncNetInstance(torch.nn.Module):
         # ========== ==========
         # Compute offset
         # ========== ==========
-            
-        print('Compute time %.3f sec.' % (time.time()-tS))
-
         dists = calc_pdist(im_feat,cc_feat,vshift=opt.vshift)
         mdist = torch.mean(torch.stack(dists,1),1)
 
         minval, minidx = torch.min(mdist,0)
 
         offset = opt.vshift-minidx
-        conf   = torch.median(mdist) - minval
+        #conf   = torch.median(mdist) - minval
 
-        fdist   = numpy.stack([dist[minidx].numpy() for dist in dists])
+        #fdist   = numpy.stack([dist[minidx].numpy() for dist in dists])
         # fdist   = numpy.pad(fdist, (3,3), 'constant', constant_values=15)
-        fconf   = torch.median(mdist).numpy() - fdist
-        fconfm  = signal.medfilt(fconf,kernel_size=9)
+        #fconf   = torch.median(mdist).numpy() - fdist
+        #fconfm  = signal.medfilt(fconf,kernel_size=9)
         
-        numpy.set_printoptions(formatter={'float': '{: 0.3f}'.format})
-        print('Framewise conf: ')
-        print(fconfm)
-        print('AV offset: \t%d \nMin dist: \t%.3f\nConfidence: \t%.3f' % (offset,minval,conf))
+        #numpy.set_printoptions(formatter={'float': '{: 0.3f}'.format})
+        #print('Framewise conf: ')
+        #print(fconfm)
+        #print('AV offset: \t%d \nMin dist: \t%.3f\nConfidence: \t%.3f' % (offset,minval,conf))
 
-        dists_npy = numpy.array([ dist.numpy() for dist in dists ])
-        return offset.numpy(), conf.numpy(), dists_npy
+        #dists_npy = numpy.array([ dist.numpy() for dist in dists ])
+        #return offset.numpy(), conf.numpy(), dists_npy
+        
+        
+        # ========== ==========
+        # If offset too high, create new video & images
+        # ========== ==========
+        if abs(offset.numpy()) > 1:
+            #we remove existing images
+            rmtree(os.path.join(opt.output_dir,opt.reference))
+            os.makedirs(os.path.join(opt.output_dir,opt.reference))
+            
+            outputname = os.path.join(opt.output_dir,opt.reference,os.path.basename(videofile))
+            itsoffset = offset.numpy()/25
+            
+            #we create a new video
+            #print("We transform %s due to %s s offset."%(os.path.basename(videofile),itsoffset))
+            command = ("ffmpeg -hide_banner -loglevel error -i %s -itsoffset %s -i %s -map 0:v -map 1:a %s -y" %(videofile,itsoffset,videofile,outputname))
+            output = subprocess.call(command, shell=True, stdout=None)
+            
+            #We print the images based on aligned video
+            command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'%06d.jpg'))) 
+            #command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'%d.jpg'))) 
+            output = subprocess.call(command, shell=True, stdout=None)
+            command = ("ffmpeg -hide_banner -loglevel error -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'audio.wav'))) 
+            output = subprocess.call(command, shell=True, stdout=None)
+            
+            #we remove the output video
+            os.remove(outputname)
+        # ========== ==========
+        # We remove leading 0 in all the image names
+        # ========== ==========
+        #print(opt.output_dir+"/"+opt.reference+'*.jpg')
+        #print("on y va :",glob.glob(opt.output_dir+'*.jpg'))
+        imagelist = glob.glob(os.path.join(opt.output_dir,opt.reference,'*.jpg'))
+        for imagepath in imagelist:
+          os.rename(imagepath,os.path.join(opt.output_dir,opt.reference,(os.path.basename(imagepath)).lstrip('0')))
+        
+        #print('Compute total time %.3f sec.' % (time.time()-tS))
+        return offset.numpy()
 
     def extract_feature(self, opt, videofile):
 
