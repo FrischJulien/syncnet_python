@@ -19,7 +19,6 @@ from tqdm import trange, tqdm
 
 print("for "+ str(opt.begining)+" to "+str(opt.end))
 for i in trange(opt.begining,opt.end):
-    print("cache cleared")
     unprocessed_folder=unprocessed_folders[i]
     print(unprocessed_folder)
     basename=os.path.basename(os.path.normpath(unprocessed_folder))
