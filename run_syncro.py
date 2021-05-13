@@ -36,20 +36,24 @@ opt = parser.parse_args();
 
 s = SyncNetInstance();
 s.loadParameters(opt.initial_model);
-#print("Model %s loaded."%opt.initial_model);
 flist = glob.glob(os.path.join(opt.input_dir,'*/*.mp4'))
 flist.sort()
 
-#pbar = tqdm(total=len(flist))
 
+# ==================== GET OFFSETS ====================
 
 def processfile(inputname):
     setattr(opt,'reference',os.path.basename(inputname)[:-4])
     outputname = os.path.join(opt.output_dir,os.path.basename(inputname))
     offset = s.evaluate(opt,videofile=inputname)
-
-
-# ==================== GET OFFSETS ====================
+    #if offset != 0:
+        #print("We transform %s due to %s s offset."%(os.path.basename(inputname),offset/25))
+    #    command = ("ffmpeg -hide_banner -loglevel error -i %s -ss %s -i %s -map 0:v -map 1:a %s -y" %(inputname,offset/25,inputname,outputname))
+    #    output = subprocess.call(command, shell=True, stdout=None)
+    #else:
+        #we just retrive the files from the temp directory
+    #    shutil.copyfile(inputname, outputname)  
+    
 
 if __name__ == '__main__':
     mp.freeze_support()

@@ -4,7 +4,7 @@
 
 import torch
 import numpy
-import time, pdb, argparse, subprocess, os, math, glob
+import time, pdb, argparse, subprocess, os, math, glob, shutil
 import cv2
 import python_speech_features
 
@@ -54,7 +54,6 @@ class SyncNetInstance(torch.nn.Module):
         
 
         command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (videofile,os.path.join(opt.output_dir,opt.reference,'%06d.jpg'))) 
-        #command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (videofile,os.path.join(opt.output_dir,opt.reference,'%d.jpg'))) 
         output = subprocess.call(command, shell=True, stdout=None)
         command = ("ffmpeg -hide_banner -loglevel error -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (videofile,os.path.join(opt.output_dir,opt.reference,'audio.wav'))) 
         output = subprocess.call(command, shell=True, stdout=None)
@@ -145,14 +144,15 @@ class SyncNetInstance(torch.nn.Module):
         
         
         # ========== ==========
-        # If offset too high, create new video & images
+        # If offset too high, create new video
         # ========== ==========
+        outputname = os.path.join(opt.output_dir,os.path.basename(videofile))
         if abs(offset.numpy()) > 1:
             #we remove existing images
-            rmtree(os.path.join(opt.output_dir,opt.reference))
-            os.makedirs(os.path.join(opt.output_dir,opt.reference))
+            #rmtree(os.path.join(opt.output_dir,opt.reference))
+            #os.makedirs(os.path.join(opt.output_dir,opt.reference))
             
-            outputname = os.path.join(opt.output_dir,opt.reference,os.path.basename(videofile))
+            #outputname = os.path.join(opt.output_dir,opt.reference,os.path.basename(videofile))
             itsoffset = offset.numpy()/25
             
             #we create a new video
@@ -161,14 +161,20 @@ class SyncNetInstance(torch.nn.Module):
             output = subprocess.call(command, shell=True, stdout=None)
             
             #We print the images based on aligned video
-            command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'%06d.jpg'))) 
-            #command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'%d.jpg'))) 
-            output = subprocess.call(command, shell=True, stdout=None)
-            command = ("ffmpeg -hide_banner -loglevel error -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'audio.wav'))) 
-            output = subprocess.call(command, shell=True, stdout=None)
+            #command = ("ffmpeg -hide_banner -loglevel error -y -i %s -threads 1 -f image2 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'%06d.jpg'))) 
+            #output = subprocess.call(command, shell=True, stdout=None)
+            #command = ("ffmpeg -hide_banner -loglevel error -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (outputname,os.path.join(opt.output_dir,opt.reference,'audio.wav'))) 
+            #output = subprocess.call(command, shell=True, stdout=None)
             
             #we remove the output video
-            os.remove(outputname)
+            #os.remove(outputname)
+        else:
+            shutil.copyfile(videofile, outputname)  
+        #we remove image files
+        rmtree(os.path.join(opt.output_dir,opt.reference))
+           
+           
+
         # ========== ==========
         # We remove leading 0 in all the image names
         # ========== ==========
