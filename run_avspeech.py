@@ -1,6 +1,8 @@
+import os
+
 #make sure the file exists
-!sudo touch /mnt/efs/fs1/avspeech/output.txt
-!sudo chmod 777 /mnt/efs/fs1/avspeech/output.txt
+os.system('sudo touch /mnt/efs/fs1/avspeech/output.txt')
+os.system('sudo chmod 777 /mnt/efs/fs1/avspeech/output.txt')
 
 #run the avspeech script
 data_path = "/mnt/efs/fs1/avspeech/raw/xad/"
