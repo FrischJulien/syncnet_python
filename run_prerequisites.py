@@ -1,8 +1,10 @@
+import os
+
 # EFS
 
-!sudo chmod ugo+rwx /mnt/efs/fs1
+os.system('sudo chmod ugo+rwx /mnt/efs/fs1')
 
 # Requirements
-!pip install -r requirements.txt
-!conda install ffmpeg -y
-!sh download_model.sh
+os.system('pip install -r requirements.txt')
+os.system('conda install ffmpeg -y')
+os.system('sh download_model.sh')
