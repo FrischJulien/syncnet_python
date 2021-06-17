@@ -18,7 +18,7 @@ output_path="/mnt/efs/fs1/avspeech/output.txt"
 subcommande = ""
 for p in range(parts_num):
     part=p
-    subcommande+="CUDA_VISIBLE_DEVICES={} python analyze_full_paralle2.py --data_path {} --tmp_dir {} --syncnet_model {} --min_track {} --min_face_size {} --batch_size {} --sample_duration {} --parts_num {} --part {} --output_path {}".format(part,data_path,tmp_dir,syncnet_model,min_track,min_face_size,batch_size,sample_duration,parts_num,part,output_path)
+    subcommande+="CUDA_VISIBLE_DEVICES={} python3 analyze_full_paralle2.py --data_path {} --tmp_dir {} --syncnet_model {} --min_track {} --min_face_size {} --batch_size {} --sample_duration {} --parts_num {} --part {} --output_path {}".format(part,data_path,tmp_dir,syncnet_model,min_track,min_face_size,batch_size,sample_duration,parts_num,part,output_path)
     if p<parts_num-1:
         subcommande+=" & "
 print(subcommande)
