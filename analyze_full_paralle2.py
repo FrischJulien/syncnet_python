@@ -610,7 +610,8 @@ videofiles = [v for i, v in enumerate(videofiles) if (i%opt.parts_num)==opt.part
 
 jobs = [(vfile, opt, i%opt.nthreads) for i, vfile in enumerate(videofiles)]
 if opt.nthreads==1:
-    mp_handler(jobs[0])
+    for j in tqdm(jobs):
+        mp_handler(j)
 else:
     p = ThreadPoolExecutor(opt.nthreads)
     futures = [p.submit(mp_handler, j) for j in jobs]
