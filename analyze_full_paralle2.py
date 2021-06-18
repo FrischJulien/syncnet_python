@@ -598,7 +598,7 @@ def mp_handler(job):
 DET = S3FD(device='cuda')
 s = SyncNetInstanceAnalyze();
 s.loadParameters(opt.syncnet_model);
-print("Model %s loaded."%opt.syncnet_model);
+#print("Model %s loaded."%opt.syncnet_model);
 
 # ========== FOR LOOP OVER ALL EXISTING MP4 FILES IN DATA_PATH ==========
 
@@ -606,12 +606,15 @@ videofiles = glob.glob(opt.data_path+'*/*.mp4')
 videofiles = [v for i, v in enumerate(videofiles) if (i%opt.parts_num)==opt.part]
 
 
-print('Started processing for {} GPUs'.format(opt.nthreads))
+#print('Started processing for {} GPUs'.format(opt.nthreads))
 
 jobs = [(vfile, opt, i%opt.nthreads) for i, vfile in enumerate(videofiles)]
-p = ThreadPoolExecutor(opt.nthreads)
-futures = [p.submit(mp_handler, j) for j in jobs]
-_ = [r.result() for r in tqdm(as_completed(futures), total=len(futures))]
+if opt.nthreads==1:
+    mp_handler(jobs[0])
+else:
+    p = ThreadPoolExecutor(opt.nthreads)
+    futures = [p.submit(mp_handler, j) for j in jobs]
+    _ = [r.result() for r in tqdm(as_completed(futures), total=len(futures))]
 
 
       

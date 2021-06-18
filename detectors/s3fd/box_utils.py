@@ -2,6 +2,7 @@ import numpy as np
 from itertools import product as product
 import torch
 from torch.autograd import Function
+import warnings
 
 
 def nms_(dets, thresh):
@@ -100,10 +101,12 @@ def nms(boxes, scores, overlap=0.5, top_k=200):
             break
         idx = idx[:-1]  # remove kept element from view
         # load bboxes of next highest vals
-        torch.index_select(x1, 0, idx, out=xx1)
-        torch.index_select(y1, 0, idx, out=yy1)
-        torch.index_select(x2, 0, idx, out=xx2)
-        torch.index_select(y2, 0, idx, out=yy2)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            torch.index_select(x1, 0, idx, out=xx1)
+            torch.index_select(y1, 0, idx, out=yy1)
+            torch.index_select(x2, 0, idx, out=xx2)
+            torch.index_select(y2, 0, idx, out=yy2)
         # store element-wise max with next highest score
         xx1 = torch.clamp(xx1, min=x1[i])
         yy1 = torch.clamp(yy1, min=y1[i])
