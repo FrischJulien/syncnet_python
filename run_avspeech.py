@@ -1,5 +1,6 @@
 import os
 import subprocess
+from tqdm import tqdm
 
 
 #make sure the file exists
