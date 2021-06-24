@@ -9,7 +9,7 @@ os.system('sudo chmod 777 /mnt/efs/fs1/avspeech/output.txt')
 
 #run the avspeech script
 data_path = "/mnt/efs/fs1/avspeech/raw/"
-repositories=["xap","xaq","xar","xas"]
+repositories=["xap/","xaq/","xar/","xas/"]
 
 
 tmp_dir="./temp/"
