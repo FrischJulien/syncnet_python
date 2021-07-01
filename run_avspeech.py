@@ -12,7 +12,7 @@ data_path = "/mnt/efs/fs1/avspeech/raw/"
 repositories=["xap/","xaq/","xar/","xas/"]
 
 
-tmp_dir="./temp/"
+tmp_dir="/tmp/"
 syncnet_model="./data/syncnet_v2.model"
 min_track=10
 min_face_size = 192
